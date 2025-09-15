@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Projeto Frontend - Next.js
 
-## Getting Started
+Este é um projeto [Next.js](https://nextjs.org) inicializado com [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-First, run the development server:
+---
+
+## 🚀 Iniciando o Projeto
+
+Primeiro, instale as dependências:
+
+```bash
+npm install
+# ou
+yarn install
+# ou
+pnpm install
+# ou
+bun install
+```
+
+Em seguida, rode o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
+# ou
 yarn dev
-# or
+# ou
 pnpm dev
-# or
+# ou
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000) no navegador para ver o resultado.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ⚙️ Fluxo de Testagem Manual
 
-## Learn More
+Este fluxo de teste manual é projetado para verificar a funcionalidade de **criação de um novo empréstimo** pelo frontend, consumindo a API do backend.
 
-To learn more about Next.js, take a look at the following resources:
+### Passo 1: Selecionar usuário no dropdown
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Na página inicial de solicitação de empréstimo, há um **menu dropdown** que lista todos os usuários cadastrados (dados obtidos pelo endpoint `GET /user`).  
+Selecione um usuário para carregar automaticamente suas informações de funcionário.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+### Passo 2: Visualizar informações do funcionário
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ao selecionar o usuário, o sistema faz uma chamada à rota:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`GET /employee/user/:userId`
+
+Isso retorna os detalhes do funcionário (salário, empresa e id). Essas informações aparecem automaticamente na interface.
+
+---
+
+### Passo 3: Criar um novo empréstimo
+
+Com o funcionário já selecionado, preencha os campos de **valor do empréstimo** e **número de parcelas** no formulário.  
+O frontend então envia uma requisição para a API:
+
+`POST /loan`
+
+**Exemplo de corpo da requisição:**
+
+```json
+{
+  "amount": 1000,
+  "parcelAmount": 2,
+  "employeeId": "c1f7a1b9-3d8c-4a1e-8e6f-7b5c3b9d0e2f"
+}
+```
+
+**Exemplo de resposta:**
+
+```json
+{
+  "id": "a9d7b4c2-9e5d-4f8a-9c7b-6b0a1d9f8c5e",
+  "amount": 1000,
+  "dueDate": "2025-09-14T22:30:00.000Z",
+  "parcelAmount": 2,
+  "approved": true,
+  "employeeId": "c1f7a1b9-3d8c-4a1e-8e6f-7b5c3b9d0e2f"
+}
+```
+
+---
+
+## 👤 Usuários de Testagem
+
+O banco de dados vem populado com usuários para facilitar cenários de teste no frontend:
+
+- **Alice Ballice** e **Bobbie Goods**  
+  Funcionários da empresa **TechTechy**, com salários de `1500` e `2500`.
+
+- **Charlie Brown** e **Dionysus**  
+  Funcionários da empresa **HealthHealthy**, com salários de `3800` e `8200`.
+
+- **Mellinöe** e **Frankie Ocean**  
+  Funcionários da empresa **TimeTimey**, com salários de `12000` e `4000`.
+
+- **Hollow Knight** e **Silk Song**  
+  Funcionários com salários de `5000` e `2200`, **sem empresa associada**, úteis para testar cenários especiais.

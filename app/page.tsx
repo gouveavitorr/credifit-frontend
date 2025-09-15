@@ -1,103 +1,148 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useAppContext } from '@/context/AppContext';
+import axios from 'axios';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+
+type User = {
+  id: string;
+  name: string;
+  cpf: string;
+  email: string;
+};
+
+interface Employee {
+  id: string;
+  salary: number;
+  companyId: string;
+  UserId: string;
+}
+
+export default function LoanRequestPage() {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [amount, setAmount] = useState(50);
+  const [installments, setInstallments] = useState(4);
+  const [employee, setEmployee] = useState<Employee | null>(null);
+  const { users } = useAppContext();
+
+  useEffect(() => {
+    if (!selectedUser) return;
+    console.log('selectedUser atualizado:', selectedUser);
+    axios.get(`http://localhost:3333/employee/user/${selectedUser?.id}`).then((response) => {
+      setEmployee(response.data);
+    });
+  }, [selectedUser]);
+
+  const handleSubmit = async () => {
+    if (!selectedUser) {
+      alert('Selecione um usuário primeiro.');
+      return;
+    }
+
+    const requestData = {
+      employeeId: employee?.id,
+      amount,
+      parcelAmount: installments,
+    };
+
+    await axios
+      .post('http://localhost:3333/loan', requestData)
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.error(error.message || 'Failed to post');
+      });
+
+    console.log('Loan Request:', requestData);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <header className="flex items-center justify-between bg-teal-700 px-6 py-3 text-white">
+        <div className="flex items-center gap-2">
+          <Image src="/credifit_br_logo.jpeg" alt="Credifit" height={24} width={24} />
+          <span className="font-bold font-mono text-2xl">Credifit</span>
+        </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="flex items-center gap-2">
+          <select
+            className="rounded bg-teal-600 px-2 py-1 text-sm focus:outline-none"
+            onChange={(e) => setSelectedUser(e.target.value ? JSON.parse(e.target.value) : null)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            <option value="">Selecionar usuário</option>
+            {users ? (
+              users.map((user) => (
+                <option key={user.id} value={JSON.stringify(user)}>
+                  {user.name}
+                </option>
+              ))
+            ) : (
+              <option value="">Selecionar usuário</option>
+            )}
+          </select>
+        </div>
+      </header>
+
+      <main className="mt-8 flex flex-1 flex-col items-center px-4">
+        <nav className="mb-4 w-full max-w-lg text-sm text-gray-500">
+          Home / <span className="font-medium text-gray-700">Crédito Consignado</span>
+        </nav>
+
+        <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-md">
+          <h1 className="mb-4 text-xl font-semibold text-gray-800">Simular Empréstimo</h1>
+
+          <div className="mb-6 flex items-start rounded-lg bg-orange-100 p-4">
+            <div className="mr-3"></div>
+            <p className="text-sm text-gray-700">
+              Você possui saldo para Crédito Consignado. Faça uma simulação! Digite quanto você
+              precisa e escolha o número de parcelas.
+            </p>
+          </div>
+
+          <div className="mb-6 text-center text-2xl font-semibold text-gray-700">
+            R$ <span>{amount.toLocaleString('pt-BR')}</span>
+          </div>
+
+          <input
+            type="range"
+            min="50"
+            max={employee?.salary ? employee.salary * 0.35 : 50}
+            step="50"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            className="mb-6 w-full accent-teal-600"
+          />
+
+          <div className="mb-6 border-gray-800">
+            <label htmlFor="installments" className="block text-sm font-medium text-gray-700 mb-1">
+              Parcelas
+            </label>
+            <input
+              id="installments"
+              type="number"
+              min="1"
+              max="4"
+              value={installments}
+              onChange={(e) => setInstallments(Number(e.target.value))}
+              className="w-full rounded-md text-black p-2 focus:ring focus:ring-teal-200"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          <div className="flex justify-between">
+            <button className="rounded-full border border-teal-600 px-6 py-2 text-teal-600 transition hover:bg-teal-50">
+              Voltar
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="rounded-full bg-teal-700 px-6 py-2 text-white transition hover:bg-teal-800"
+            >
+              Simular empréstimo
+            </button>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
